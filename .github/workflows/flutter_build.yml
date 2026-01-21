@@ -2,9 +2,9 @@ name: Flutter Android Release Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "Release/Testing-Demo" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "Release/Testing-Demo" ]
 
 jobs:
   build:
