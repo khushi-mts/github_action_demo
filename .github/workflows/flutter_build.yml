@@ -1,4 +1,4 @@
-name: Flutter Android Build
+name: Flutter Android Release Build
 
 on:
   push:
@@ -11,28 +11,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      # 1️⃣ Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      # 2️⃣ Setup Java (required for Android + Gradle)
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
+      # 3️⃣ Setup Flutter (FIXED)
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: stable
+          flutter-version: "3.22.3"   # ✅ stable & safe
+          cache: true
 
+      # 4️⃣ Flutter dependencies
       - name: Flutter pub get
         run: flutter pub get
 
+      # 5️⃣ Decode keystore from GitHub Secrets
       - name: Decode keystore
         run: |
           mkdir -p android/app
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/key.keystore
 
+      # 6️⃣ Create key.properties file
       - name: Create key.properties
         run: |
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
@@ -40,15 +47,17 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=../app/key.keystore" >> android/key.properties
 
-      - name: Build APK
+      # 7️⃣ Build signed release APK
+      - name: Build Release APK
         run: flutter build apk --release
 
-      # OPTIONAL: AAB for Play Store
+      # 🔁 OPTIONAL: Build AAB for Play Store
       # - name: Build App Bundle
       #   run: flutter build appbundle
 
-      - name: Upload APK artifact
+      # 8️⃣ Upload APK as artifact
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
+          name: app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
